@@ -1,0 +1,19 @@
+[Unit]
+Description=FoodieFlow FastAPI Asynchronous Application Server
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/foodieflow/backend
+Environment="PATH=/home/ubuntu/foodieflow/backend/.venv/bin"
+EnvironmentFile=/home/ubuntu/foodieflow/backend/.env
+ExecStart=/home/ubuntu/foodieflow/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 4 --loop uvloop --http httptools
+Restart=always
+RestartSec=5
+StandardOutput=append:/var/log/foodieflow.log
+StandardError=append:/var/log/foodieflow.err.log
+
+[Install]
+WantedBy=multi-user.target
