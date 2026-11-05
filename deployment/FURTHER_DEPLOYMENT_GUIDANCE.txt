@@ -1,0 +1,106 @@
+================================================================================
+FOODIEFLOW - POST-DEPLOYMENT NEXT STEPS & OPERATIONAL GUIDANCE
+================================================================================
+
+This guidance is for the phase immediately after you have completed the base steps
+in DEPLOYMENT_GUIDE.md (EC2 Backend + S3/CloudFront Frontend + Razorpay configuration).
+
+--------------------------------------------------------------------------------
+1. CURRENT STATUS & WHAT WAS JUST CONFIGURED
+--------------------------------------------------------------------------------
+1. Frontend .env Created:
+   - Path: frontend/.env (and frontend/.env.example)
+   - Pre-configured with VITE_API_URL and VITE_RAZORPAY_KEY_ID with detailed inline comments.
+
+2. Dynamic API Base URL Configured Across Codebase:
+   - File: frontend/src/utils/api.js
+   - All network calls (fetch) across Menu, Orders, Checkout, Razorpay Payment,
+     Admin Dashboard, and Receipt Downloads now dynamically respect VITE_API_URL.
+   - Zero-Error Fallback: If VITE_API_URL is set, requests point to your remote EC2
+     backend. If empty, it safely falls back to relative paths for local dev and
+     CloudFront reverse proxying.
+
+--------------------------------------------------------------------------------
+2. ESSENTIAL POST-DEPLOYMENT ACTIONS
+--------------------------------------------------------------------------------
+
+STEP 1: RE-BUILD AND RE-UPLOAD FRONTEND TO S3
+In Vite, environment variables starting with VITE_ are embedded into the client
+JavaScript at BUILD TIME. You must rebuild and re-sync to S3:
+
+  1. Open frontend/.env and verify/update your EC2 backend URL and Razorpay Key:
+       VITE_API_URL=https://api.foodieflow.campus.edu
+       VITE_RAZORPAY_KEY_ID=rzp_live_xxxxxxxxxxxxxx
+
+  2. Run production build:
+       cd frontend
+       npm run build
+
+  3. Upload build to S3:
+       aws s3 sync dist/ s3://<YOUR_S3_BUCKET_NAME> \
+         --delete \
+         --cache-control "max-age=31536000,public" \
+         --exclude "index.html"
+
+       aws s3 cp dist/index.html s3://<YOUR_S3_BUCKET_NAME>/index.html \
+         --cache-control "no-cache, no-store, must-revalidate"
+
+  4. Invalidate CloudFront Cache:
+       aws cloudfront create-invalidation \
+         --distribution-id <YOUR_CLOUDFRONT_DISTRIBUTION_ID> \
+         --paths "/*"
+
+
+STEP 2: ENSURE BACKEND CORS CONTAINS CLOUDFRONT ORIGIN
+On your EC2 instance (/home/ubuntu/foodieflow/backend/.env):
+  1. Open .env:
+       nano /home/ubuntu/foodieflow/backend/.env
+
+  2. Ensure CORS_ORIGINS includes your CloudFront domain:
+       CORS_ORIGINS=["https://<YOUR_DISTRIBUTION_ID>.cloudfront.net","https://foodieflow.campus.edu","http://localhost:3000"]
+
+  3. Restart FastAPI service:
+       sudo systemctl restart foodieflow
+       sudo systemctl status foodieflow
+
+
+STEP 3: SYSTEM SMOKE TESTING CHECKLIST
+  - Backend Health:
+      curl -I https://api.foodieflow.campus.edu/health
+      (Expect: HTTP/1.1 200 OK)
+
+  - Backend Menu API:
+      curl https://api.foodieflow.campus.edu/api/v1/menu
+      (Expect: JSON with menu items)
+
+  - Frontend Browser Check:
+      Open https://<YOUR_DISTRIBUTION_ID>.cloudfront.net
+      Press F12 -> Console: Verify NO red CORS errors.
+
+  - Order & Checkout Flow:
+      Add dish to cart -> Enter details -> Open Razorpay modal.
+      Verify order ID is generated on backend.
+
+  - Webhook Check:
+      Make a payment -> Verify Razorpay Dashboard -> Webhooks -> 200 OK delivery.
+
+
+STEP 4: (OPTIONAL PRO TIP) CLOUDFRONT ZERO-CORS UNIFIED ARCHITECTURE
+If you prefer not dealing with CORS across subdomains:
+  1. In AWS CloudFront Console, add a 2nd Origin pointing to EC2 domain/IP.
+  2. Add a Cache Behavior for path "/api/*" forwarding to the EC2 Origin
+     with caching disabled and all headers forwarded.
+  3. Set VITE_API_URL= in frontend/.env to empty string ("").
+  4. All requests stay on one domain with zero CORS setup!
+
+
+STEP 5: PRODUCTION MAINTENANCE & SECURITY
+  1. EC2 Security Group:
+     Keep port 8000 closed to 0.0.0.0/0. Only open ports 22, 80, and 443.
+  2. Database Backups:
+     Add a nightly cron job to backup /home/ubuntu/foodieflow/backend/foodieflow.db
+  3. Live Log Streaming:
+     FastAPI: journalctl -u foodieflow -f
+     Nginx: tail -f /var/log/nginx/access.log
+================================================================================
+

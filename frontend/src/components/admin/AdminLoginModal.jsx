@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Lock, ShieldCheck, KeyRound, ArrowRight } from 'lucide-react';
+import { apiUrl } from '../../utils/api';
 
 export const AdminLoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
   const [pin, setPin] = useState('');
@@ -14,7 +15,7 @@ export const AdminLoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/v1/admin/login', {
+      const res = await fetch(apiUrl('/api/v1/admin/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pin: pin.trim() }),

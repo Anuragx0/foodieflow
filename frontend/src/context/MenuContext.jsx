@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import { CATEGORIES, INITIAL_MENU_ITEMS } from '../utils/constants';
+import { apiUrl } from '../utils/api';
 
 const MenuContext = createContext();
 
@@ -16,7 +17,7 @@ export const MenuProvider = ({ children }) => {
   const fetchMenu = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/v1/menu');
+      const res = await fetch(apiUrl('/api/v1/menu'));
       if (res.ok) {
         const json = await res.json();
         if (json.data && Array.isArray(json.data) && json.data.length > 0) {

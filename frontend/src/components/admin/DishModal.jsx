@@ -14,6 +14,7 @@ import {
   Leaf,
   Beef,
 } from 'lucide-react';
+import { apiUrl } from '../../utils/api';
 
 const POPULAR_CATEGORIES = [
   'All-Day Meals',
@@ -182,7 +183,7 @@ export const DishModal = ({ isOpen, onClose, itemToEdit, onSaveSuccess }) => {
         : '/api/v1/admin/menu/items';
       const method = isEditing ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await fetch(apiUrl(url), {
         method,
         headers: {
           'Content-Type': 'application/json',
@@ -210,7 +211,7 @@ export const DishModal = ({ isOpen, onClose, itemToEdit, onSaveSuccess }) => {
     try {
       setSubmitting(true);
       setApiError(null);
-      const res = await fetch(`/api/v1/admin/menu/items/${itemToEdit.id}`, {
+      const res = await fetch(apiUrl(`/api/v1/admin/menu/items/${itemToEdit.id}`), {
         method: 'DELETE',
         headers: {
           Authorization: token,

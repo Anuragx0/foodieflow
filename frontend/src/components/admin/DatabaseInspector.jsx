@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Database, Table, RefreshCw, Layers, ShieldCheck, CheckCircle2, Download, Receipt } from 'lucide-react';
 import { formatINR } from '../../utils/formatters';
 import { downloadOrderReceipt } from '../../utils/receiptDownloader';
+import { apiUrl } from '../../utils/api';
 
 export const DatabaseInspector = () => {
   const [activeTable, setActiveTable] = useState('orders'); // 'orders' | 'menu_items'
@@ -16,9 +17,9 @@ export const DatabaseInspector = () => {
     try {
       setLoading(true);
       const [ordersRes, menuRes, statsRes] = await Promise.all([
-        fetch('/api/v1/admin/orders', { headers: { Authorization: token } }),
-        fetch('/api/v1/menu'),
-        fetch('/api/v1/admin/stats', { headers: { Authorization: token } }),
+        fetch(apiUrl('/api/v1/admin/orders'), { headers: { Authorization: token } }),
+        fetch(apiUrl('/api/v1/menu')),
+        fetch(apiUrl('/api/v1/admin/stats'), { headers: { Authorization: token } }),
       ]);
 
       if (ordersRes.ok) setOrders(await ordersRes.json());

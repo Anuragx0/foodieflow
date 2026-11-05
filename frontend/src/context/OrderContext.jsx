@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { apiUrl } from '../utils/api';
 
 const OrderContext = createContext();
 
@@ -134,7 +135,7 @@ export const OrderProvider = ({ children }) => {
   const fetchOrderStatus = useCallback(async (orderId) => {
     if (!orderId) return null;
     try {
-      const res = await fetch(`/api/v1/orders/${encodeURIComponent(orderId)}`);
+      const res = await fetch(apiUrl(`/api/v1/orders/${encodeURIComponent(orderId)}`));
       if (!res.ok) return null;
       return await res.json();
     } catch {
@@ -149,7 +150,7 @@ export const OrderProvider = ({ children }) => {
         throw new Error('Please enter a valid Token or Order ID');
       }
       const cleanId = identifier.trim();
-      const res = await fetch(`/api/v1/orders/track/${encodeURIComponent(cleanId)}`);
+      const res = await fetch(apiUrl(`/api/v1/orders/track/${encodeURIComponent(cleanId)}`));
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.detail || `Order '${cleanId}' not found.`);

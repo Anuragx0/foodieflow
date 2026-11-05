@@ -14,6 +14,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { formatINR } from '../../utils/formatters';
+import { apiUrl } from '../../utils/api';
 
 export const RazorpayPaymentModal = ({
   isOpen,
@@ -28,7 +29,7 @@ export const RazorpayPaymentModal = ({
   const [customKeyId, setCustomKeyId] = useState(
     rzpOrderData?.keyId && !rzpOrderData.keyId.includes('Demo')
       ? rzpOrderData.keyId
-      : ''
+      : import.meta.env.VITE_RAZORPAY_KEY_ID || ''
   );
   const [cardForm, setCardForm] = useState({
     number: '4532 •••• •••• 8920',
@@ -56,7 +57,7 @@ export const RazorpayPaymentModal = ({
     setProcessing(true);
 
     try {
-      const verifyRes = await fetch('/api/v1/payments/verify', {
+      const verifyRes = await fetch(apiUrl('/api/v1/payments/verify'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

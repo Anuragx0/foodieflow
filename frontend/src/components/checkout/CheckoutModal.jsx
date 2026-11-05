@@ -13,6 +13,7 @@ import {
 import { useCart } from '../../context/CartContext';
 import { useOrders } from '../../context/OrderContext';
 import { formatINR } from '../../utils/formatters';
+import { apiUrl } from '../../utils/api';
 import { RazorpayPaymentModal } from './RazorpayPaymentModal';
 
 export const CheckoutModal = () => {
@@ -127,7 +128,7 @@ export const CheckoutModal = () => {
         })),
       };
 
-      const orderRes = await fetch('/api/v1/orders/create', {
+      const orderRes = await fetch(apiUrl('/api/v1/orders/create'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderPayload),
@@ -142,7 +143,7 @@ export const CheckoutModal = () => {
       const internalOrderId = order.orderId;
 
       // 2. Generate Razorpay Order
-      const rzpRes = await fetch('/api/v1/payments/create-razorpay-order', {
+      const rzpRes = await fetch(apiUrl('/api/v1/payments/create-razorpay-order'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderId: internalOrderId }),

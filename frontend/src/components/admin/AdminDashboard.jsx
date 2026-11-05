@@ -27,6 +27,7 @@ import { formatINR } from '../../utils/formatters';
 import { downloadOrderReceipt } from '../../utils/receiptDownloader';
 import { DatabaseInspector } from './DatabaseInspector';
 import { DishModal } from './DishModal';
+import { apiUrl } from '../../utils/api';
 import { useMenu } from '../../context/MenuContext';
 import { ThemeToggle } from '../common/ThemeToggle';
 import { SpicyBadge } from '../common/Badge';
@@ -58,7 +59,7 @@ export const AdminDashboard = ({ onLogout }) => {
 
   const fetchStats = async () => {
     try {
-      const res = await fetch('/api/v1/admin/stats', {
+      const res = await fetch(apiUrl('/api/v1/admin/stats'), {
         headers: { Authorization: token },
       });
       if (res.ok) {
@@ -77,7 +78,7 @@ export const AdminDashboard = ({ onLogout }) => {
         statusFilter === 'ALL'
           ? '/api/v1/admin/orders'
           : `/api/v1/admin/orders?status=${statusFilter}`;
-      const res = await fetch(url, {
+      const res = await fetch(apiUrl(url), {
         headers: { Authorization: token },
       });
       if (res.ok) {
@@ -93,7 +94,7 @@ export const AdminDashboard = ({ onLogout }) => {
 
   const fetchMenuItems = async () => {
     try {
-      const res = await fetch('/api/v1/menu');
+      const res = await fetch(apiUrl('/api/v1/menu'));
       if (res.ok) {
         const json = await res.json();
         if (json.data) {
@@ -121,7 +122,7 @@ export const AdminDashboard = ({ onLogout }) => {
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      const res = await fetch(`/api/v1/admin/orders/${orderId}/status`, {
+      const res = await fetch(apiUrl(`/api/v1/admin/orders/${orderId}/status`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -140,7 +141,7 @@ export const AdminDashboard = ({ onLogout }) => {
 
   const handleToggleStock = async (itemId, currentInStock) => {
     try {
-      const res = await fetch(`/api/v1/admin/menu/${itemId}/stock`, {
+      const res = await fetch(apiUrl(`/api/v1/admin/menu/${itemId}/stock`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
